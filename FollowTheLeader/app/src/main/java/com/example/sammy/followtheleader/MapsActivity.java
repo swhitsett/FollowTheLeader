@@ -1,4 +1,4 @@
-package com.example.donpancho.followtheleader;
+package com.example.sammy.followtheleader;
 import android.content.IntentSender;
 import android.location.Location;
 import android.os.Bundle;
@@ -62,7 +62,7 @@ public class MapsActivity extends ActionBarActivity implements
         setUpMapIfNeeded();
         mGoogleApiClient.connect();
     }
-//    @Override
+    //    @Override
 //    protected void onPause() {
 //
 //        super.onPause();
