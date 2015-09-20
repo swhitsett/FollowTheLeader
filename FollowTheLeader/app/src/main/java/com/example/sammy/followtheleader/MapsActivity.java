@@ -17,6 +17,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.parse.Parse;
+import com.parse.ParseObject;
 
 //public class MapsActivity extends ActionBarActivity implements OnMapReadyCallback {
 public class MapsActivity extends ActionBarActivity implements
@@ -32,6 +34,16 @@ public class MapsActivity extends ActionBarActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //Enabling Parse API
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
+
+        //testing Parse
+//        ParseObject testObject = new ParseObject("TestObject");
+//        testObject.put("foo", "bar");
+//        testObject.saveInBackground();
+
+        // Enable Local Datastore.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
@@ -41,12 +53,6 @@ public class MapsActivity extends ActionBarActivity implements
                 .setInterval(10 * 1000)        // 10 seconds, in milliseconds
                 .setFastestInterval(1 * 1000); // 1 second, in milliseconds
 
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_maps);
-//        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-//                .findFragmentById(R.id.map);
-//        mapFragment.getMapAsync(this);
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
     //---------------------------------------------------------------
     protected synchronized void buildGoogleApiClient() {
