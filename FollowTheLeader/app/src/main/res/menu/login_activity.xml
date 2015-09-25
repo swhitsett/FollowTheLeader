@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:followtheleader="http://schemas.android.com/apk/res-auto"
+    >
+    <!-- Search, should appear as action button -->
+    <item android:id="@+id/register"
+        android:title="@string/register"
+        android:icon="@drawable/ic_group_add_black_24dp"
+        followtheleader:showAsAction="ifRoom"
+        />
+</menu>
