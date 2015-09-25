@@ -1,4 +1,5 @@
 package com.example.sammy.followtheleader;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -79,6 +81,8 @@ public class MapsActivity extends ActionBarActivity implements
 //            mGoogleApiClient.disconnect();
 //        }
 //    }
+
+    //creation of adding user account-----------------------
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu items for use in the action bar
@@ -92,13 +96,17 @@ public class MapsActivity extends ActionBarActivity implements
         // Handle presses on the action bar items
         switch (item.getItemId()) {
             case R.id.register:
-
+                    registerUser();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
-
+    public void registerUser () {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+    }
+    //------------------------------------------------------
     @Override
     protected void onPause() {
         super.onPause();
