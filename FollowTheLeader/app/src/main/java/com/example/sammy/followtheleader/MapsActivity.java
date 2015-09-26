@@ -40,13 +40,13 @@ public class MapsActivity extends ActionBarActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //Enabling Parse API
-        Parse.enableLocalDatastore(this);
-        Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
-
-        //testing Parse
-        ParseObject testObject = new ParseObject("TestObject");
-        testObject.put("foo", "Tyson Henery");
-        testObject.saveInBackground();
+//        Parse.enableLocalDatastore(this);
+//        Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
+//
+//        //testing Parse
+//        ParseObject testObject = new ParseObject("TestObject");
+//        testObject.put("foo", "Tyson Henery");
+//        testObject.saveInBackground();
 
         // Enable Local Datastore.
         super.onCreate(savedInstanceState);
