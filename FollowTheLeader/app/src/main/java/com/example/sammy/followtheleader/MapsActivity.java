@@ -83,29 +83,29 @@ public class MapsActivity extends ActionBarActivity implements
 //    }
 
     //creation of adding user account-----------------------
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu items for use in the action bar
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.login_activity, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle presses on the action bar items
-        switch (item.getItemId()) {
-            case R.id.register:
-                    registerUser();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-    public void registerUser () {
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu items for use in the action bar
+//        MenuInflater inflater = getMenuInflater();
+//        inflater.inflate(R.menu.login_activity, menu);
+//        return super.onCreateOptionsMenu(menu);
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        // Handle presses on the action bar items
+//        switch (item.getItemId()) {
+//            case R.id.register:
+//                registerUser();
+//                return true;
+//            default:
+//                return super.onOptionsItemSelected(item);
+//        }
+//    }
+//    public void registerUser () {
+//        Intent intent = new Intent(this, LoginActivity.class);
+//        startActivity(intent);
+//    }
     //------------------------------------------------------
     @Override
     protected void onPause() {
@@ -124,14 +124,14 @@ public class MapsActivity extends ActionBarActivity implements
                     .getMap();
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
-                setUpMap();
+                //setUpMap();
             }
         }
     }
 
-    private void setUpMap() {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
-    }
+//    private void setUpMap() {
+//        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+//    }
 
     @Override
     public void onConnected(Bundle bundle) {
