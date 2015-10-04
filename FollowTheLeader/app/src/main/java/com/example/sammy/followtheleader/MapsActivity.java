@@ -21,6 +21,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.Parse;
 import com.parse.ParseObject;
@@ -36,6 +37,9 @@ public class MapsActivity extends ActionBarActivity implements
     private LocationRequest mLocationRequest;
     public static final String TAG = MapsActivity.class.getSimpleName();
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+    private Location location;
+    private Marker marker;
+    private boolean markerCreated = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,13 +57,16 @@ public class MapsActivity extends ActionBarActivity implements
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
         buildGoogleApiClient();
-        mLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(10 * 1000)        // 10 seconds, in milliseconds
-                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+        createLocationRequest();
 
     }
     //---------------------------------------------------------------
+    public void createLocationRequest(){
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(1 * 1000)        // 10 seconds, in milliseconds
+                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+    }
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -137,31 +144,49 @@ public class MapsActivity extends ActionBarActivity implements
     public void onConnected(Bundle bundle) {
 
         Log.i(TAG, "Service Connected");
-        Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (location == null) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        }
-        else {
+        startLocationUpdates();
+        location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+//        if (location == null) {
+//            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+//        }
+//        else {
             handleNewLocation(location);
-        };
+//        };
 
 
     }
 
-    private void handleNewLocation(Location location) {
+    protected void startLocationUpdates(){
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
 
+    private void handleNewLocation(Location location) {
+        Log.i(TAG, "----------------------"+location.getLatitude());
         Log.d(TAG, location.toString());
         double currentLatitude = location.getLatitude();
         double currentLongitude = location.getLongitude();
 
         LatLng latLng = new LatLng(currentLatitude, currentLongitude);
 
-        MarkerOptions options = new MarkerOptions()
-                .position(latLng)
-                .title("Your Location");
-
-        mMap.addMarker(options);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        if(!markerCreated){
+            MarkerOptions options = new MarkerOptions()
+                    .position(latLng)
+                    .title("Your Location");
+            marker = mMap.addMarker(options);
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+            markerCreated = true;
+        }
+        else{
+            marker.remove();
+            MarkerOptions options = new MarkerOptions()
+                    .position(latLng)
+                    .title("Your Location");
+            marker = mMap.addMarker(options);
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            //mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        }
     }
     @Override
     public void onConnectionSuspended(int i) {
@@ -184,23 +209,8 @@ public class MapsActivity extends ActionBarActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
+
         handleNewLocation(location);
     }
-//    @Override
-//    public void onConnected(Bundle connectionHint) {
-//         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-//                mGoogleApiClient);
-//        if (mLastLocation != null) {
-//            mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
-//            mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
-//        }
-//    }
-    //---------------------------------------------------------------
-//    @Override
-//    public void onMapReady(GoogleMap map) {
-//        // Add a marker in Sydney, Australia, and move the camera.
-//        LatLng sydney = new LatLng(-34, 151);
-//        map.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        map.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-//    }
+
 }
