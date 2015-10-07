@@ -1,6 +1,7 @@
 package com.example.sammy.followtheleader;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -19,17 +20,25 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.parse.Parse;
 import com.parse.ParseObject;
+
+import java.util.ArrayList;
 
 //public class MapsActivity extends ActionBarActivity implements OnMapReadyCallback {
 public class MapsActivity extends ActionBarActivity implements
         GoogleApiClient.ConnectionCallbacks
         ,GoogleApiClient.OnConnectionFailedListener
+        ,GoogleMap.OnMapClickListener
+        ,GoogleMap.OnMapLongClickListener
         ,LocationListener{
 
     private GoogleMap mMap;
@@ -40,6 +49,9 @@ public class MapsActivity extends ActionBarActivity implements
     private Location location;
     private Marker marker;
     private boolean markerCreated = false;
+    private Polyline polyline;
+    private ArrayList<LatLng> arrayPoints = null;
+    PolylineOptions polylineOptions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,12 +65,13 @@ public class MapsActivity extends ActionBarActivity implements
 //        testObject.saveInBackground();
 
         // Enable Local Datastore.
+        arrayPoints = new ArrayList<LatLng>();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
         buildGoogleApiClient();
         createLocationRequest();
-
+        mMap.setOnMapLongClickListener(this);
     }
     //---------------------------------------------------------------
     public void createLocationRequest(){
@@ -162,7 +175,7 @@ public class MapsActivity extends ActionBarActivity implements
     }
 
     private void handleNewLocation(Location location) {
-        Log.i(TAG, "----------------------"+location.getLatitude());
+        Log.i(TAG, "----------------------" + location.getLatitude());
         Log.d(TAG, location.toString());
         double currentLatitude = location.getLatitude();
         double currentLongitude = location.getLongitude();
@@ -172,22 +185,69 @@ public class MapsActivity extends ActionBarActivity implements
         if(!markerCreated){
             MarkerOptions options = new MarkerOptions()
                     .position(latLng)
-                    .title("Your Location");
+                    .title("Your Location")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+
             marker = mMap.addMarker(options);
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+
+//            Polyline line = mMap.addPolyline(new PolylineOptions()
+//                    .add(new LatLng(39.744752, -122.015956), new LatLng(39.44752, -122.2), new LatLng(39.54752, -122.5), new LatLng(36.44752,-132.2))
+//                    .width(5)
+//                    .color(Color.RED));
             markerCreated = true;
         }
         else{
+
             marker.remove();
+
             MarkerOptions options = new MarkerOptions()
                     .position(latLng)
-                    .title("Your Location");
+                    .title("Your Location")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
             marker = mMap.addMarker(options);
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            //mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+
+            polylineOptions = new PolylineOptions();
+            arrayPoints.add(latLng);
+            polylineOptions.color(Color.RED);
+            polylineOptions.width(8);
+            polylineOptions.addAll(arrayPoints);
+
+            mMap.addPolyline(polylineOptions);
+//            Polyline line = mMap.addPolyline(new PolylineOptions()
+//                    .add()
+//                    .width(5)
+//                    .color(Color.RED));
+
+//            PolylineOptions rectOptions = new PolylineOptions()
+//                    .add(latLng)
+//                    .color(Color.RED)
+//                    .width(6);
+//            polyline = mMap.addPolyline(rectOptions);
+
+//            Parse.enableLocalDatastore(this);
+//            Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
+//            ParseObject uPositions = new ParseObject("UserPositions");
+//            uPositions.put("Latitude", currentLatitude);
+//            uPositions.put("Longitude", currentLongitude);
+//            uPositions.put("userID", 4);
+//            uPositions.put("Bearing", location.getBearing());
+//            uPositions.saveInBackground();
+//            //mMap.addAll();
         }
     }
+    @Override
+    public void onMapLongClick(LatLng point) {
+        MarkerOptions marker = new MarkerOptions();
+        marker.position(point);
+        mMap.addMarker(marker);
+    }
+    @Override public void onMapClick(LatLng point) {
+        marker.remove();
+    }
+
     @Override
     public void onConnectionSuspended(int i) {
         Log.i(TAG, "Reconnection Needed");
