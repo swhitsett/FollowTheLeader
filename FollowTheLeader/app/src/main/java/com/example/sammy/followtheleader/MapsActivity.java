@@ -33,7 +33,6 @@ import com.parse.ParseObject;
 
 import java.util.ArrayList;
 
-//public class MapsActivity extends ActionBarActivity implements OnMapReadyCallback {
 public class MapsActivity extends ActionBarActivity implements
         GoogleApiClient.ConnectionCallbacks
         ,GoogleApiClient.OnConnectionFailedListener
@@ -56,15 +55,10 @@ public class MapsActivity extends ActionBarActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //Enabling Parse API
-//        Parse.enableLocalDatastore(this);
-//        Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
-//
-//        //testing Parse
-//        ParseObject testObject = new ParseObject("TestObject");
-//        testObject.put("foo", "Tyson Henery");
-//        testObject.saveInBackground();
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
 
-        // Enable Local Datastore.
+        // Enable Local Datastore ----- grab from server eventualy
         arrayPoints = new ArrayList<LatLng>();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
@@ -80,6 +74,7 @@ public class MapsActivity extends ActionBarActivity implements
                 .setInterval(1 * 1000)        // 10 seconds, in milliseconds
                 .setFastestInterval(1 * 1000); // 1 second, in milliseconds
     }
+
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -87,20 +82,13 @@ public class MapsActivity extends ActionBarActivity implements
                 .addApi(LocationServices.API)
                 .build();
     }
+
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
         mGoogleApiClient.connect();
     }
-    //    @Override
-//    protected void onPause() {
-//
-//        super.onPause();
-//        if (mGoogleApiClient.isConnected()) {
-//            mGoogleApiClient.disconnect();
-//        }
-//    }
 
     //creation of adding user account-----------------------
 //    @Override
@@ -149,9 +137,6 @@ public class MapsActivity extends ActionBarActivity implements
         }
     }
 
-//    private void setUpMap() {
-//        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
-//    }
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -159,14 +144,12 @@ public class MapsActivity extends ActionBarActivity implements
         Log.i(TAG, "Service Connected");
         startLocationUpdates();
         location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-//        if (location == null) {
-//            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-//        }
-//        else {
+        if (location == null) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
+        else {
             handleNewLocation(location);
-//        };
-
-
+        }
     }
 
     protected void startLocationUpdates(){
@@ -175,8 +158,8 @@ public class MapsActivity extends ActionBarActivity implements
     }
 
     private void handleNewLocation(Location location) {
+
         Log.i(TAG, "----------------------" + location.getLatitude());
-        Log.d(TAG, location.toString());
         double currentLatitude = location.getLatitude();
         double currentLongitude = location.getLongitude();
 
@@ -192,10 +175,6 @@ public class MapsActivity extends ActionBarActivity implements
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
 
-//            Polyline line = mMap.addPolyline(new PolylineOptions()
-//                    .add(new LatLng(39.744752, -122.015956), new LatLng(39.44752, -122.2), new LatLng(39.54752, -122.5), new LatLng(36.44752,-132.2))
-//                    .width(5)
-//                    .color(Color.RED));
             markerCreated = true;
         }
         else{
@@ -216,26 +195,14 @@ public class MapsActivity extends ActionBarActivity implements
             polylineOptions.addAll(arrayPoints);
 
             mMap.addPolyline(polylineOptions);
-//            Polyline line = mMap.addPolyline(new PolylineOptions()
-//                    .add()
-//                    .width(5)
-//                    .color(Color.RED));
 
-//            PolylineOptions rectOptions = new PolylineOptions()
-//                    .add(latLng)
-//                    .color(Color.RED)
-//                    .width(6);
-//            polyline = mMap.addPolyline(rectOptions);
-
-//            Parse.enableLocalDatastore(this);
-//            Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
-//            ParseObject uPositions = new ParseObject("UserPositions");
-//            uPositions.put("Latitude", currentLatitude);
-//            uPositions.put("Longitude", currentLongitude);
-//            uPositions.put("userID", 4);
-//            uPositions.put("Bearing", location.getBearing());
-//            uPositions.saveInBackground();
-//            //mMap.addAll();
+            ParseObject uPositions = new ParseObject("UserPositions");
+            uPositions.put("Latitude", currentLatitude);
+            uPositions.put("Longitude", currentLongitude);
+            uPositions.put("userID", 4);
+            uPositions.put("sessionID", 4);
+            uPositions.put("Bearing", location.getBearing());
+            uPositions.saveInBackground();
         }
     }
     @Override
@@ -272,5 +239,6 @@ public class MapsActivity extends ActionBarActivity implements
 
         handleNewLocation(location);
     }
+
 
 }
