@@ -28,10 +28,14 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.parse.FindCallback;
 import com.parse.Parse;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MapsActivity extends ActionBarActivity implements
         GoogleApiClient.ConnectionCallbacks
@@ -66,6 +70,8 @@ public class MapsActivity extends ActionBarActivity implements
         buildGoogleApiClient();
         createLocationRequest();
         mMap.setOnMapLongClickListener(this);
+
+
     }
     //---------------------------------------------------------------
     public void createLocationRequest(){
@@ -165,45 +171,56 @@ public class MapsActivity extends ActionBarActivity implements
 
         LatLng latLng = new LatLng(currentLatitude, currentLongitude);
 
-        if(!markerCreated){
-            MarkerOptions options = new MarkerOptions()
-                    .position(latLng)
-                    .title("Your Location")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+        if(markerCreated) {
+            marker.remove();
+        }
 
-            marker = mMap.addMarker(options);
+        MarkerOptions options = new MarkerOptions()
+                .position(latLng)
+                .title("Your Location")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+        marker = mMap.addMarker(options);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+
+        polylineOptions = new PolylineOptions();
+        arrayPoints.add(latLng);
+        polylineOptions.color(Color.RED);
+        polylineOptions.width(8);
+        polylineOptions.addAll(arrayPoints);
+
+        //pull parse data
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("UserPositions");
+        query.whereEqualTo("sessionID", "4");
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> list, com.parse.ParseException e) {
+                for (ParseObject parseObject : list) {
+
+                    Double Long = Double.parseDouble(parseObject.get("Longitude").toString());
+                    Double Lat = Double.parseDouble(parseObject.get("Latitude").toString());
+
+                    LatLng playerLocations = new LatLng(Lat, Long);
+                    arrayPoints.add(playerLocations);
+                }
+            }
+        });
+
+        mMap.addPolyline(polylineOptions);
+
+        ParseObject uPositions = new ParseObject("UserPositions");
+        uPositions.put("Latitude", currentLatitude);
+        uPositions.put("Longitude", currentLongitude);
+        uPositions.put("userID", 4);
+        uPositions.put("sessionID", 4);
+        uPositions.put("Bearing", location.getBearing());
+        uPositions.saveInBackground();
+
+        if(!markerCreated) {
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-
             markerCreated = true;
         }
-        else{
 
-            marker.remove();
-
-            MarkerOptions options = new MarkerOptions()
-                    .position(latLng)
-                    .title("Your Location")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-            marker = mMap.addMarker(options);
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-
-            polylineOptions = new PolylineOptions();
-            arrayPoints.add(latLng);
-            polylineOptions.color(Color.RED);
-            polylineOptions.width(8);
-            polylineOptions.addAll(arrayPoints);
-
-            mMap.addPolyline(polylineOptions);
-
-            ParseObject uPositions = new ParseObject("UserPositions");
-            uPositions.put("Latitude", currentLatitude);
-            uPositions.put("Longitude", currentLongitude);
-            uPositions.put("userID", 4);
-            uPositions.put("sessionID", 4);
-            uPositions.put("Bearing", location.getBearing());
-            uPositions.saveInBackground();
-        }
     }
     @Override
     public void onMapLongClick(LatLng point) {
