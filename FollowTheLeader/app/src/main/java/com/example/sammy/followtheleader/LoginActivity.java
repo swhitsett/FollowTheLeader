@@ -134,17 +134,42 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
     }
 
     private void registerUser(){
+        boolean cancel = false;
         mEmailView.setError(null);
         mPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
+        Context context = getApplicationContext();
+        CharSequence text;
+        int duration = Toast.LENGTH_SHORT;
+        Toast toast;
 
-        ParseObject userinfo = new ParseObject("Userinfo");
-        userinfo.put("user_email", email);
-        userinfo.put("password", password);
-        userinfo.saveInBackground();
+        for (int i=0; i<userName.size(); i++){
+            if(email.equals(userName.get(i)) ){
+                cancel = true;
+            }
+        }
+
+        if(cancel){
+            mEmailView.requestFocus();
+            text = "Email is already in use";
+
+            toast = Toast.makeText(context, text, duration);
+            toast.show();
+        }
+        else{
+            ParseObject userinfo = new ParseObject("Userinfo");
+            userinfo.put("user_email", email);
+            userinfo.put("password", password);
+            userinfo.saveInBackground();
+
+            text = "Account Created, Now Login!!";
+
+            toast = Toast.makeText(context, text, duration);
+            toast.show();
+        }
     }
     /**
      * Attempts to sign in or register the account specified by the login form.
@@ -152,6 +177,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
      * errors are presented and no actual login attempt is made.
      */
     private void attemptLogin() {
+        boolean cancel = true;
         if (mAuthTask != null) {
             return;
         }
@@ -166,20 +192,40 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 
         for (int i=0; i<userPassword.size(); i++){
             if(password.equals(userPassword.get(i)) && email.equals(userName.get(i)) ){
-                procedeTomap();
+                cancel = false;
             }
         }
 
-        Context context = getApplicationContext();
-        CharSequence text = "Credentials were Incorrect";
-        int duration = Toast.LENGTH_SHORT;
+        if (cancel) {
+            // There was an error; don't attempt login and focus the first
+            // form field with an error.
+            mEmailView.requestFocus();
+            Context context = getApplicationContext();
+            CharSequence text = "Credentials were Incorrect";
+            int duration = Toast.LENGTH_SHORT;
 
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+            //focusView.requestFocus();
+        } else {
+            // Show a progress spinner, and kick off a background task to
+            // perform the user login attempt.
+            showProgress(true);
+            mAuthTask = new UserLoginTask(email, password);
+            mAuthTask.execute((Void) null);
+            procedeTomap();
+        }
+
+//        Context context = getApplicationContext();
+//        CharSequence text = "Credentials were Incorrect";
+//        int duration = Toast.LENGTH_SHORT;
+//
+//        Toast toast = Toast.makeText(context, text, duration);
+//        toast.show();
 
 //        pullData(password);
-        boolean cancel = true;
-        View focusView = null;
+//        boolean cancel = true;
+//        View focusView = null;
 
         // Check for a valid password, if the user entered one.
 //        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
@@ -202,18 +248,18 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
         //testing Parse
 
 
-        if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
-            mEmailView.requestFocus();
-            //focusView.requestFocus();
-        } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
-        }
+//        if (cancel) {
+//            // There was an error; don't attempt login and focus the first
+//            // form field with an error.
+//            mEmailView.requestFocus();
+//            //focusView.requestFocus();
+//        } else {
+//            // Show a progress spinner, and kick off a background task to
+//            // perform the user login attempt.
+//            showProgress(true);
+//            mAuthTask = new UserLoginTask(email, password);
+//            mAuthTask.execute((Void) null);
+//        }
 
 //        procedeTomap();
     }
