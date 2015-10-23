@@ -58,9 +58,11 @@ public class MapsActivity extends ActionBarActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        //isUserLoggedIn();
         //Enabling Parse API
-        Parse.enableLocalDatastore(this);
-        Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
+//        Parse.enableLocalDatastore(this);
+//        Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
 
         // Enable Local Datastore ----- grab from server eventualy
         arrayPoints = new ArrayList<LatLng>();
@@ -133,16 +135,10 @@ public class MapsActivity extends ActionBarActivity implements
     private void setUpMapIfNeeded() {
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
-            // Try to obtain the map from the SupportMapFragment.
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
-            // Check if we were successful in obtaining the map.
-            if (mMap != null) {
-                //setUpMap();
-            }
         }
     }
-
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -253,9 +249,10 @@ public class MapsActivity extends ActionBarActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
-
         handleNewLocation(location);
     }
+
+
 
 
 }

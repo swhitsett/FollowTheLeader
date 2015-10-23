@@ -6,6 +6,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -17,6 +18,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -26,9 +28,13 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.parse.FindCallback;
 import com.parse.Parse;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,16 +61,26 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private String currentUser;
+    private ArrayList<String> userPassword = null;
+    private ArrayList<String> userName = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
+
+        pullData();
+
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
-
+        userPassword = new ArrayList<String>();
+        userName = new ArrayList<String>();
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -85,21 +101,57 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
             }
         });
 
+        Button mRegisterButton = (Button) findViewById(R.id.register);
+        mRegisterButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                registerUser();
+                pullData();
+            }
+        });
+
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+    }
+    public void pullData(){
+
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Userinfo");
+//        query.whereEqualTo("password", password);
+        query.findInBackground(new FindCallback<ParseObject>() {
+
+            public void done(List<ParseObject> list, com.parse.ParseException e) {
+                for (ParseObject parseObject : list) {
+
+                    userPassword.add(parseObject.get("password").toString());
+                    userName.add(parseObject.get("user_email").toString());
+                }
+            }
+        });
     }
 
     private void populateAutoComplete() {
         getLoaderManager().initLoader(0, null, this);
     }
 
+    private void registerUser(){
+        mEmailView.setError(null);
+        mPasswordView.setError(null);
 
+        // Store values at the time of the login attempt.
+        String email = mEmailView.getText().toString();
+        String password = mPasswordView.getText().toString();
+
+        ParseObject userinfo = new ParseObject("Userinfo");
+        userinfo.put("user_email", email);
+        userinfo.put("password", password);
+        userinfo.saveInBackground();
+    }
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
-    public void attemptLogin() {
+    private void attemptLogin() {
         if (mAuthTask != null) {
             return;
         }
@@ -112,7 +164,21 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
 
-        boolean cancel = false;
+        for (int i=0; i<userPassword.size(); i++){
+            if(password.equals(userPassword.get(i)) && email.equals(userName.get(i)) ){
+                procedeTomap();
+            }
+        }
+
+        Context context = getApplicationContext();
+        CharSequence text = "Credentials were Incorrect";
+        int duration = Toast.LENGTH_SHORT;
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+
+//        pullData(password);
+        boolean cancel = true;
         View focusView = null;
 
         // Check for a valid password, if the user entered one.
@@ -132,19 +198,15 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 //            focusView = mEmailView;
 //            cancel = true;
 //        }
-        Parse.enableLocalDatastore(this);
-        Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
 
         //testing Parse
-        ParseObject userinfo = new ParseObject("Userinfo");
-        userinfo.put("user_email", email);
-        userinfo.put("password", password);
-        userinfo.saveInBackground();
+
 
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
-            focusView.requestFocus();
+            mEmailView.requestFocus();
+            //focusView.requestFocus();
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
@@ -153,7 +215,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
             mAuthTask.execute((Void) null);
         }
 
-        procedeTomap();
+//        procedeTomap();
     }
 
     public void procedeTomap () {
