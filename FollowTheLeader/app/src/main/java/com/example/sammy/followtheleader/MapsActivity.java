@@ -99,13 +99,13 @@ public class MapsActivity extends ActionBarActivity implements
     }
 
     //creation of adding user account-----------------------
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu items for use in the action bar
-//        MenuInflater inflater = getMenuInflater();
-//        inflater.inflate(R.menu.login_activity, menu);
-//        return super.onCreateOptionsMenu(menu);
-//    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu items for use in the action bar
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.new_event, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 //
 //    @Override
 //    public boolean onOptionsItemSelected(MenuItem item) {
