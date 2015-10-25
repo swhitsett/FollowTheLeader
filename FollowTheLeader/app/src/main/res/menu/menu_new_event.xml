@@ -1,0 +1,9 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.sammy.followtheleader.NewEvent">
+    <item android:id="@+id/register" android:title="@string/register"
+        android:orderInCategory="100" app:showAsAction="ifRoom"
+        android:icon="@drawable/create_event" />
+</menu>
+
