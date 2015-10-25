@@ -1,5 +1,7 @@
 package com.example.sammy.followtheleader;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -7,7 +9,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.ParseObject;
@@ -22,6 +28,7 @@ public class NewEvent extends AppCompatActivity {
     ArrayList<String> playerArray = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
         parseUsers = new ArrayList<String>();
@@ -41,8 +48,6 @@ public class NewEvent extends AppCompatActivity {
                         .withEndAction(new Runnable() {
                             @Override
                             public void run() {
-//                                list.remove(item);
-//                                adapter.notifyDataSetChanged();
                                 populatePlayersList(item, playersList);
                                 view.setAlpha(1);
                             }
@@ -67,6 +72,47 @@ public class NewEvent extends AppCompatActivity {
             }
 
         });
+
+        Button startEvent = (Button) findViewById(R.id.startButton);
+        startEvent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int eventID = getEventType();
+                if(eventID != 0)
+                    procedeTomap(playerArray, eventID);
+            }
+        });
+    }
+
+    private int getEventType () {
+        RadioButton eventType1 = (RadioButton) findViewById(R.id.toDest);
+        RadioButton eventType2 = (RadioButton) findViewById(R.id.followMe);
+
+        if(eventType1.isChecked()){
+            return 1;
+        }
+        else if(eventType2.isChecked()){
+            return 2;
+        }
+        else {
+            int duration = Toast.LENGTH_SHORT;
+            Context context = getApplicationContext();
+            CharSequence text = "Please Choose a Type of Event";
+
+            Toast toast = Toast.makeText(context, text, duration);
+            RadioButton r =(RadioButton) findViewById(R.id.toDest);
+            r.requestFocus();
+            toast.show();
+            return 0;
+        }
+
+    }
+    public void procedeTomap (ArrayList<String> playerList,int eventID) {
+        Intent intent = new Intent(this, MapsActivity.class);
+        intent.putExtra("peoplePlaying", playerList);
+        intent.putExtra("eventType", eventID);
+        startActivity(intent);
+
     }
 
     private void removePlayer(String item, ListView playerList){
