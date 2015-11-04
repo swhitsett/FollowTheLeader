@@ -266,6 +266,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
 
     public void procedeTomap () {
         Intent intent = new Intent(this, MapsActivity.class);
+        intent.putExtra("user1", mEmailView.getText().toString());
         startActivity(intent);
     }
 

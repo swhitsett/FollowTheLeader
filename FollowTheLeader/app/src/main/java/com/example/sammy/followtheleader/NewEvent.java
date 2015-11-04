@@ -21,14 +21,18 @@ import com.parse.ParseQuery;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class NewEvent extends AppCompatActivity {
 
     ArrayList<String> parseUsers = null;
     ArrayList<String> playerArray = null;
+    private String user1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        Intent intent =getIntent();
+        user1 = intent.getStringExtra("user1");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
         parseUsers = new ArrayList<String>();
@@ -111,6 +115,9 @@ public class NewEvent extends AppCompatActivity {
         Intent intent = new Intent(this, MapsActivity.class);
         intent.putExtra("peoplePlaying", playerList);
         intent.putExtra("eventType", eventID);
+        intent.putExtra("gameStarted", true);
+        intent.putExtra("user1", user1);
+        intent.putExtra("sessionID", UUID.randomUUID().toString());
         startActivity(intent);
 
     }
