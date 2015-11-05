@@ -97,7 +97,7 @@ public class MapsActivity extends ActionBarActivity implements
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(1 * 1000)        // 10 seconds, in milliseconds
-                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+                .setFastestInterval(3 * 1000); // 1 second, in milliseconds
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -186,13 +186,16 @@ public class MapsActivity extends ActionBarActivity implements
 
             LatLng latLng = new LatLng(currentLatitude, currentLongitude);
             if(markerCreated) {
-                mMap.clear();
-//                marker.remove();
+//                mMap.clear();
+                arrayPoints.clear();
+                userAtPoint.clear();
+//                userAtPoint.clear();
+//
             }
             saveNewLocation(currentLatitude, currentLongitude, location.getBearing());
-            pullUserPositions();
-            placeUserMarkers(latLng);
-            addPollyLinesToMap();
+            pullUserPositions(latLng);
+//            placeUserMarkers(latLng);
+//            addPollyLinesToMap();
 
 //
 //        MarkerOptions options = new MarkerOptions()
@@ -222,7 +225,7 @@ public class MapsActivity extends ActionBarActivity implements
         }
     }
     private void addPollyLinesToMap(){
-
+        polylineOptions = null;
         polylineOptions = new PolylineOptions();
 //            arrayPoints.add(latLng);
         polylineOptions.color(Color.RED);
@@ -282,7 +285,7 @@ public class MapsActivity extends ActionBarActivity implements
 //        marker = mMap.addMarker(options);
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
     }
-    private void pullUserPositions() {
+    private void pullUserPositions(final LatLng latLng) {
         ParseQuery<ParseObject> query = ParseQuery.getQuery("UserPositions");
         query.whereEqualTo("sessionID", sessionID);
         query.findInBackground(new FindCallback<ParseObject>() {
@@ -299,8 +302,12 @@ public class MapsActivity extends ActionBarActivity implements
                     arrayPoints.add(playerLocations);
                     userAtPoint.add(user);
                 }
+                mMap.clear();
+                placeUserMarkers(latLng);
+                addPollyLinesToMap();
             }
         });
+
     }
     @Override
     public void onMapLongClick(LatLng point) {
