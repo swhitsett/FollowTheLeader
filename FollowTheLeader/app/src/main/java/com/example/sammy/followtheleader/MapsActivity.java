@@ -30,6 +30,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.parse.FindCallback;
 import com.parse.Parse;
+import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
@@ -67,14 +68,13 @@ public class MapsActivity extends ActionBarActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        //isUserLoggedIn();
-        //Enabling Parse API
-//        Parse.enableLocalDatastore(this);
 //        Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
+        ParseInstallation.getCurrentInstallation().saveInBackground();
 
-        // Enable Local Datastore ----- grab from server eventualy
         currentPlayerNames = new ArrayList<String>();
         userAtPoint = new ArrayList<String>();
+
+        //Grab data from other activitys
         Intent intent = getIntent();
         currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
         eventType = intent.getIntExtra("eventType", 0);
@@ -97,7 +97,7 @@ public class MapsActivity extends ActionBarActivity implements
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(1 * 1000)        // 10 seconds, in milliseconds
-                .setFastestInterval(3 * 1000); // 1 second, in milliseconds
+                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -185,51 +185,27 @@ public class MapsActivity extends ActionBarActivity implements
             double currentLongitude = location.getLongitude();
 
             LatLng latLng = new LatLng(currentLatitude, currentLongitude);
+
             if(markerCreated) {
-//                mMap.clear();
                 arrayPoints.clear();
                 userAtPoint.clear();
-//                userAtPoint.clear();
-//
             }
+
             saveNewLocation(currentLatitude, currentLongitude, location.getBearing());
             pullUserPositions(latLng);
-//            placeUserMarkers(latLng);
-//            addPollyLinesToMap();
-
-//
-//        MarkerOptions options = new MarkerOptions()
-//                .position(latLng)
-//                .title("Your Location")
-//                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-//        marker = mMap.addMarker(options);
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-
-
-//        String kk = UUID.randomUUID().toString()
-
-//            ParseObject uPositions = new ParseObject("UserPositions");
-//            uPositions.put("Latitude", currentLatitude);
-//            uPositions.put("Longitude", currentLongitude);
-//            uPositions.put("userID", user1);
-//            uPositions.put("sessionID", sessionID);
-//            uPositions.put("Bearing", location.getBearing());
-//            uPositions.saveInBackground();
 
             if (!markerCreated) {
                 currentPlayerNames.add(user1);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-//                markerCreated = true;
             }
         }
     }
     private void addPollyLinesToMap(){
         polylineOptions = null;
         polylineOptions = new PolylineOptions();
-//            arrayPoints.add(latLng);
         polylineOptions.color(Color.RED);
-        polylineOptions.width(6);
+        polylineOptions.width(8);
         polylineOptions.addAll(arrayPoints);
         mMap.addPolyline(polylineOptions);
     }
@@ -244,15 +220,9 @@ public class MapsActivity extends ActionBarActivity implements
     }
     private void placeUserMarkers (LatLng latLng) {
 
-//        if(markerCreated) {
-//            marker.remove();
-//        }
-
         ArrayList<LatLng> markerLocation = new ArrayList<LatLng>();
         for(int j=currentPlayerNames.size()-1; j>=0; j--) {
-            for (int i = userAtPoint.size()-1; i>=0  ; i--) { //for (int i = 0; i< userAtPoint.size() ; i++) {
-                String u = userAtPoint.get(i);    //for testing
-                String p = currentPlayerNames.get(j); //for teseting
+            for (int i = userAtPoint.size()-1; i>=0  ; i--) {
                 if (userAtPoint.get(i).equals(currentPlayerNames.get(j))) {
                     if(markerLocation.isEmpty()) {
                         markerLocation.add(arrayPoints.get(i));
@@ -263,11 +233,9 @@ public class MapsActivity extends ActionBarActivity implements
                         break;
                     }
                 }
-//                break;
             }
         }
         for (int i = 0; i < markerLocation.size(); i++) {
-//            String asdf = userAtPoint.get(i);
             MarkerOptions options = new MarkerOptions()
                     .position(markerLocation.get(i))
                     .title("Your Location")
@@ -276,14 +244,6 @@ public class MapsActivity extends ActionBarActivity implements
             markerCreated = true;
 //            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         }
-
-
-//        MarkerOptions options = new MarkerOptions()
-//                .position(latLng)
-//                .title("Your Location")
-//                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-//        marker = mMap.addMarker(options);
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
     }
     private void pullUserPositions(final LatLng latLng) {
         ParseQuery<ParseObject> query = ParseQuery.getQuery("UserPositions");

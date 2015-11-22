@@ -71,6 +71,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        //Need the initilization to only happen when opened once
         Parse.enableLocalDatastore(this);
         Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
 
