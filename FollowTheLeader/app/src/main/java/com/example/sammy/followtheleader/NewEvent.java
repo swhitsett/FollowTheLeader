@@ -16,7 +16,9 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
+import com.parse.ParseInstallation;
 import com.parse.ParseObject;
+import com.parse.ParsePush;
 import com.parse.ParseQuery;
 
 import java.util.ArrayList;
@@ -112,6 +114,29 @@ public class NewEvent extends AppCompatActivity {
 
     }
     public void procedeTomap (ArrayList<String> playerList,int eventID) {
+        for(int i=0; i<playerList.size(); i++){
+            ParseQuery pushQuery = ParseInstallation.getQuery();
+            pushQuery.whereEqualTo("user", playerList.get(i));
+//            pushQuery.whereNotEqualTo("user",user1);
+
+            // Send push notification to query
+            ParsePush push = new ParsePush();
+            push.setQuery(pushQuery); // Set our Installation query
+            push.setMessage("Dawg join my game");
+            push.sendInBackground();
+
+//            ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+//            installation.put("user",parseUsers.get(i));
+//            installation.saveInBackground();
+        }
+
+//        ParsePush.subscribeInBackground("Giants");
+//        ParsePush push = new ParsePush();
+//        push.setChannel("Giants");
+//        push.setMessage("The Giants just scored! It's now 2-2 against the Mets.");
+//        push.sendInBackground();
+//        ParsePush.unsubscribeInBackground("Giants");
+
         Intent intent = new Intent(this, MapsActivity.class);
         intent.putExtra("peoplePlaying", playerList);
         intent.putExtra("eventType", eventID);
