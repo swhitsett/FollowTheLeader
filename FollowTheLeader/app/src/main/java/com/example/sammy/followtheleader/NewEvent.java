@@ -21,8 +21,12 @@ import com.parse.ParseObject;
 import com.parse.ParsePush;
 import com.parse.ParseQuery;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class NewEvent extends AppCompatActivity {
@@ -114,35 +118,34 @@ public class NewEvent extends AppCompatActivity {
 
     }
     public void procedeTomap (ArrayList<String> playerList,int eventID) {
+        String uniqueID = UUID.randomUUID().toString();
         for(int i=0; i<playerList.size(); i++){
             ParseQuery pushQuery = ParseInstallation.getQuery();
             pushQuery.whereEqualTo("user", playerList.get(i));
 //            pushQuery.whereNotEqualTo("user",user1);
 
+            JSONObject data = new JSONObject();
+            try {
+                data.put("gameID", uniqueID);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
             // Send push notification to query
             ParsePush push = new ParsePush();
             push.setQuery(pushQuery); // Set our Installation query
+            push.setData(data);
             push.setMessage("Dawg join my game");
+//            push.setChannel(uniqueID);
             push.sendInBackground();
-
-//            ParseInstallation installation = ParseInstallation.getCurrentInstallation();
-//            installation.put("user",parseUsers.get(i));
-//            installation.saveInBackground();
         }
-
-//        ParsePush.subscribeInBackground("Giants");
-//        ParsePush push = new ParsePush();
-//        push.setChannel("Giants");
-//        push.setMessage("The Giants just scored! It's now 2-2 against the Mets.");
-//        push.sendInBackground();
-//        ParsePush.unsubscribeInBackground("Giants");
 
         Intent intent = new Intent(this, MapsActivity.class);
         intent.putExtra("peoplePlaying", playerList);
         intent.putExtra("eventType", eventID);
         intent.putExtra("gameStarted", true);
         intent.putExtra("user1", user1);
-        intent.putExtra("sessionID", UUID.randomUUID().toString());
+        intent.putExtra("sessionID", uniqueID);
         startActivity(intent);
 
     }

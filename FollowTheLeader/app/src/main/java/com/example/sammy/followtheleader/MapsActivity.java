@@ -67,15 +67,20 @@ public class MapsActivity extends ActionBarActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Intent intent = getIntent();
 
-//        Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
+//        Parse.
+//        if(intent.getBooleanExtra("isAppRunning",false)) {
+//            Parse.enableLocalDatastore(this);
+//            Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
+//        }
         ParseInstallation.getCurrentInstallation().saveInBackground();
 
         currentPlayerNames = new ArrayList<String>();
         userAtPoint = new ArrayList<String>();
 
         //Grab data from other activitys
-        Intent intent = getIntent();
+//        Intent intent = getIntent();
         currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
         eventType = intent.getIntExtra("eventType", 0);
         user1 = intent.getStringExtra("user1");
@@ -88,11 +93,19 @@ public class MapsActivity extends ActionBarActivity implements
         setUpMapIfNeeded();
         buildGoogleApiClient();
         createLocationRequest();
+//        initparseInstliation();
         mMap.setOnMapLongClickListener(this);
 
 
     }
     //---------------------------------------------------------------
+//    private void initparseInstliation(){
+//            ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+//            installation.put("user", user1);
+////            installation.get("user");
+//            installation.saveInBackground();
+//    }
+
     public void createLocationRequest(){
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
