@@ -127,6 +127,7 @@ public class NewEvent extends AppCompatActivity {
             JSONObject data = new JSONObject();
             try {
                 data.put("gameID", uniqueID);
+//                data.put("fromPush", true);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -135,7 +136,7 @@ public class NewEvent extends AppCompatActivity {
             ParsePush push = new ParsePush();
             push.setQuery(pushQuery); // Set our Installation query
             push.setData(data);
-            push.setMessage("Dawg join my game");
+            push.setMessage("Dawg join my game66");
 //            push.setChannel(uniqueID);
             push.sendInBackground();
         }
@@ -145,6 +146,7 @@ public class NewEvent extends AppCompatActivity {
         intent.putExtra("eventType", eventID);
         intent.putExtra("gameStarted", true);
         intent.putExtra("user1", user1);
+//        intent.putExtra("loggedIn", true);
         intent.putExtra("sessionID", uniqueID);
         startActivity(intent);
 

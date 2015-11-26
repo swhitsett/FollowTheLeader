@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -33,6 +34,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.model.LatLng;
 import com.parse.FindCallback;
 import com.parse.Parse;
+import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
@@ -266,8 +268,19 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
     }
 
     public void procedeTomap () {
+        SharedPreferences settings = getSharedPreferences("Prefs_File", 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("userName", mEmailView.getText().toString());
+        editor.putBoolean("loggedIn", true);
+        editor.commit();
+
+        ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+        installation.put("user", mEmailView.getText().toString());
+        installation.saveInBackground();
+
         Intent intent = new Intent(this, MapsActivity.class);
         intent.putExtra("user1", mEmailView.getText().toString());
+//        intent.putExtra("loggedIn", true);
         startActivity(intent);
     }
 

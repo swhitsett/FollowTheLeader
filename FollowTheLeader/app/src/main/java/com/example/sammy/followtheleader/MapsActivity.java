@@ -1,6 +1,7 @@
 package com.example.sammy.followtheleader;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
@@ -68,13 +69,9 @@ public class MapsActivity extends ActionBarActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent intent = getIntent();
+        isUserLoggedIn();
 
-//        Parse.
-//        if(intent.getBooleanExtra("isAppRunning",false)) {
-//            Parse.enableLocalDatastore(this);
-//            Parse.initialize(this, "kg6d6QP0IQPIRALoiioW22RgHkzk8586Xvgwdyjh", "L9szZ1U1rxVW07SVW7Wucg3ek9u4DRE46PryrJfg");
-//        }
-        ParseInstallation.getCurrentInstallation().saveInBackground();
+//        ParseInstallation.getCurrentInstallation().saveInBackground();
 
         currentPlayerNames = new ArrayList<String>();
         userAtPoint = new ArrayList<String>();
@@ -83,8 +80,12 @@ public class MapsActivity extends ActionBarActivity implements
 //        Intent intent = getIntent();
         currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
         eventType = intent.getIntExtra("eventType", 0);
-        user1 = intent.getStringExtra("user1");
         sessionID = intent.getStringExtra("sessionID");
+        if(intent.getBooleanExtra("fromPush",false)){
+            sessionID = intent.getStringExtra("gameID");
+        }
+
+//        sessionID = intent.getStringExtra("sessionID");
         gameStarted = intent.getBooleanExtra("gameStarted", false);
 
         arrayPoints = new ArrayList<LatLng>();
@@ -99,13 +100,21 @@ public class MapsActivity extends ActionBarActivity implements
 
     }
     //---------------------------------------------------------------
-//    private void initparseInstliation(){
-//            ParseInstallation installation = ParseInstallation.getCurrentInstallation();
-//            installation.put("user", user1);
-////            installation.get("user");
-//            installation.saveInBackground();
-//    }
 
+    public void isUserLoggedIn(){
+        SharedPreferences settings = getSharedPreferences("Prefs_File", 0);
+        boolean loggedin = settings.getBoolean("loggedIn", false);
+        String uname = settings.getString("userName", "blank");
+//        setSilent(silent);
+
+        if(!loggedin){
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
+        else{
+            user1 = uname;
+        }
+    }
     public void createLocationRequest(){
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -163,7 +172,19 @@ public class MapsActivity extends ActionBarActivity implements
             mGoogleApiClient.disconnect();
         }
     }
+    @Override
+    protected void onStop(){
+        super.onStop();
 
+        // We need an Editor object to make preference changes.
+        // All objects are from android.context.Context
+        SharedPreferences settings = getSharedPreferences("Prefs_File", 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("userName", user1);
+        editor.putBoolean("loggedIn", true);
+        editor.commit();
+
+    }
     private void setUpMapIfNeeded() {
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
