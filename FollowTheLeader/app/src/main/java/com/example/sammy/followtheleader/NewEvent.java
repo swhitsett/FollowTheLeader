@@ -126,17 +126,27 @@ public class NewEvent extends AppCompatActivity {
 
             JSONObject data = new JSONObject();
             try {
+                data.put("alert", "Meet you there!");
                 data.put("gameID", uniqueID);
-//                data.put("fromPush", true);
+                data.put("fromPush", true);
+                data.put("gameStarted", true);
+                data.put("eventType", 0);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+//            JSONObject data = null;
+//            try {
+//                data = new JSONObject("{\"gameID\": uniqueID,\"formPush\": true}");
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
 
             // Send push notification to query
             ParsePush push = new ParsePush();
             push.setQuery(pushQuery); // Set our Installation query
             push.setData(data);
-            push.setMessage("Dawg join my game66");
+//            push.setMessage("Dawg join my game66");
 //            push.setChannel(uniqueID);
             push.sendInBackground();
         }

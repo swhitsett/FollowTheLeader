@@ -35,6 +35,9 @@ import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,17 +80,31 @@ public class MapsActivity extends ActionBarActivity implements
         userAtPoint = new ArrayList<String>();
 
         //Grab data from other activitys
-//        Intent intent = getIntent();
-        currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
-        eventType = intent.getIntExtra("eventType", 0);
-        sessionID = intent.getStringExtra("sessionID");
-        if(intent.getBooleanExtra("fromPush",false)){
-            sessionID = intent.getStringExtra("gameID");
-        }
 
+//        currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
+//        eventType = intent.getIntExtra("eventType", 0);
 //        sessionID = intent.getStringExtra("sessionID");
-        gameStarted = intent.getBooleanExtra("gameStarted", false);
 
+        String jsonData = intent.getStringExtra("com.parse.Data");
+
+        if(jsonData != null) {
+            JSONObject json;
+            try {
+                json = new JSONObject(jsonData);
+                sessionID = json.getString("gameID");
+                gameStarted = json.getBoolean("gameStarted");
+                eventType = json.getInt("eventType");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
+            eventType = intent.getIntExtra("eventType", 0);
+            sessionID = intent.getStringExtra("sessionID");
+            gameStarted = intent.getBooleanExtra("gameStarted", false);
+        }
+//        gameStarted = intent.getBooleanExtra("gameStarted", false);
         arrayPoints = new ArrayList<LatLng>();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
