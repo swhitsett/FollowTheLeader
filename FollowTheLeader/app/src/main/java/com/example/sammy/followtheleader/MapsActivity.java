@@ -93,12 +93,15 @@ public class MapsActivity extends ActionBarActivity implements
 
         if(jsonData != null) {
             JSONObject json;
+            JSONArray players;
             try {
                 json = new JSONObject(jsonData);
                 sessionID = json.getString("gameID");
                 gameStarted = json.getBoolean("gameStarted");
                 eventType = json.getInt("eventType");
-                getArrayList(json.getJSONArray("currentPlayers"));
+                players = json.getJSONArray("currentPlayers");
+                getArrayList(players);
+//                getArrayList(json.getJSONArray("currentPlayers"));
             } catch (JSONException e) {
                 e.printStackTrace();
             }

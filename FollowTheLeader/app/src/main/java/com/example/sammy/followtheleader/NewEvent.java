@@ -120,6 +120,7 @@ public class NewEvent extends AppCompatActivity {
     }
     public void procedeTomap (ArrayList<String> playerList,int eventID) {
         String uniqueID = UUID.randomUUID().toString();
+        playerList.add(user1);
         for(int i=0; i<playerList.size(); i++){
             ParseQuery pushQuery = ParseInstallation.getQuery();
             pushQuery.whereEqualTo("user", playerList.get(i));
