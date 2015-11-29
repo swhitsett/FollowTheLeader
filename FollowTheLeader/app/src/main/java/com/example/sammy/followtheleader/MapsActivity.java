@@ -263,7 +263,7 @@ public class MapsActivity extends ActionBarActivity implements
             pullUserPositions(latLng);
 
             if (!markerCreated) {
-                currentPlayerNames.add(user1);
+//                currentPlayerNames.add(user1);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
             }

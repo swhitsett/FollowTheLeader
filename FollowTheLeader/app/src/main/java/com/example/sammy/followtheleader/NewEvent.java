@@ -121,10 +121,10 @@ public class NewEvent extends AppCompatActivity {
     public void procedeTomap (ArrayList<String> playerList,int eventID) {
         String uniqueID = UUID.randomUUID().toString();
         playerList.add(user1);
-        for(int i=0; i<playerList.size(); i++){
+//        for(int i=0; i<playerList.size(); i++){
             ParseQuery pushQuery = ParseInstallation.getQuery();
-            pushQuery.whereEqualTo("user", playerList.get(i));
-//            pushQuery.whereNotEqualTo("user",user1);
+            pushQuery. whereEqualTo("user", playerList);
+            pushQuery.whereNotEqualTo("user",user1);
 
             JSONObject data = new JSONObject();
             try {
@@ -152,7 +152,7 @@ public class NewEvent extends AppCompatActivity {
 //            push.setMessage("Dawg join my game66");
 //            push.setChannel(uniqueID);
             push.sendInBackground();
-        }
+//        }
 
         Intent intent = new Intent(this, MapsActivity.class);
         intent.putExtra("peoplePlaying", playerList);
