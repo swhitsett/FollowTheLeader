@@ -35,6 +35,7 @@ import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -63,6 +64,8 @@ public class MapsActivity extends ActionBarActivity implements
     PolylineOptions polylineOptions;
     private ArrayList<String> currentPlayerNames = null;
     private ArrayList<String> userAtPoint = null;
+    private ArrayList<LatLng> markerLocation = null;
+    private ArrayList<LatLng> playerPollyLine = null;
     private int eventType;
     private String user1;
     private String sessionID;
@@ -78,7 +81,8 @@ public class MapsActivity extends ActionBarActivity implements
 
         currentPlayerNames = new ArrayList<String>();
         userAtPoint = new ArrayList<String>();
-
+        markerLocation = new ArrayList<LatLng>();
+        playerPollyLine = new ArrayList<LatLng>();
         //Grab data from other activitys
 
 //        currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
@@ -94,6 +98,7 @@ public class MapsActivity extends ActionBarActivity implements
                 sessionID = json.getString("gameID");
                 gameStarted = json.getBoolean("gameStarted");
                 eventType = json.getInt("eventType");
+                getArrayList(json.getJSONArray("currentPlayers"));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -117,7 +122,16 @@ public class MapsActivity extends ActionBarActivity implements
 
     }
     //---------------------------------------------------------------
-
+    private void getArrayList(JSONArray mrArray){
+        for (int i=0;i<mrArray.length();i++){
+//                mrArray.getString(i).toString();
+            try {
+                currentPlayerNames.add(mrArray.get(i).toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     public void isUserLoggedIn(){
         SharedPreferences settings = getSharedPreferences("Prefs_File", 0);
         boolean loggedin = settings.getBoolean("loggedIn", false);
@@ -252,13 +266,22 @@ public class MapsActivity extends ActionBarActivity implements
             }
         }
     }
-    private void addPollyLinesToMap(){
+//    private void addPollyLinesToMap(){
+//        polylineOptions = null;
+//        polylineOptions = new PolylineOptions();
+//        polylineOptions.color(Color.RED);
+//        polylineOptions.width(8);
+//        polylineOptions.addAll(arrayPoints);
+//        mMap.addPolyline(polylineOptions);
+//    }
+    private void drawPlayerPolyline(){
         polylineOptions = null;
         polylineOptions = new PolylineOptions();
         polylineOptions.color(Color.RED);
         polylineOptions.width(8);
-        polylineOptions.addAll(arrayPoints);
+        polylineOptions.addAll(playerPollyLine);
         mMap.addPolyline(polylineOptions);
+        playerPollyLine.clear();
     }
     private void saveNewLocation(double currentLatitude, double currentLongitude, double bearing){
         ParseObject uPositions = new ParseObject("UserPositions");
@@ -270,21 +293,28 @@ public class MapsActivity extends ActionBarActivity implements
         uPositions.saveInBackground();
     }
     private void placeUserMarkers (LatLng latLng) {
-
-        ArrayList<LatLng> markerLocation = new ArrayList<LatLng>();
+        markerLocation.clear();
+        boolean userPointFound = false;
+//        ArrayList<LatLng> markerLocation = new ArrayList<LatLng>();
         for(int j=currentPlayerNames.size()-1; j>=0; j--) {
             for (int i = userAtPoint.size()-1; i>=0  ; i--) {
                 if (userAtPoint.get(i).equals(currentPlayerNames.get(j))) {
-                    if(markerLocation.isEmpty()) {
-                        markerLocation.add(arrayPoints.get(i));
-                        break;
-                    }
-                    else {
-                        markerLocation.add(j, arrayPoints.get(i));
-                        break;
+                    playerPollyLine.add(arrayPoints.get(i));
+                    if(!userPointFound) {
+                        if (markerLocation.isEmpty()) {
+                            markerLocation.add(arrayPoints.get(i));
+                            userPointFound = true;
+//                            break;
+                        } else {
+                            markerLocation.add(j, arrayPoints.get(i));
+                            userPointFound = true;
+//                            break;
+                        }
                     }
                 }
             }
+            drawPlayerPolyline();
+            userPointFound = false;
         }
         for (int i = 0; i < markerLocation.size(); i++) {
             MarkerOptions options = new MarkerOptions()
@@ -315,7 +345,7 @@ public class MapsActivity extends ActionBarActivity implements
                 }
                 mMap.clear();
                 placeUserMarkers(latLng);
-                addPollyLinesToMap();
+//                addPollyLinesToMap();
             }
         });
 

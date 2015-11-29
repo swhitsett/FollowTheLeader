@@ -21,6 +21,7 @@ import com.parse.ParseObject;
 import com.parse.ParsePush;
 import com.parse.ParseQuery;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -131,6 +132,7 @@ public class NewEvent extends AppCompatActivity {
                 data.put("fromPush", true);
                 data.put("gameStarted", true);
                 data.put("eventType", 0);
+                data.put("currentPlayers", new JSONArray(playerList));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
