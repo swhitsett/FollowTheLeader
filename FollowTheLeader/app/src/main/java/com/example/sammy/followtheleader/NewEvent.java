@@ -36,13 +36,17 @@ public class NewEvent extends AppCompatActivity {
     ArrayList<String> parseUsers = null;
     ArrayList<String> playerArray = null;
     private String user1;
-    private LatLng destination;
+    private double lat;
+    private double lon;
+    private LatLng dest;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         Intent intent =getIntent();
         user1 = intent.getStringExtra("user1");
-        destination = intent.getParcelableExtra("destination");
+//        lat = intent.getDoubleExtra("Lat", 0.0);
+//        lon = intent.getDoubleExtra("Long",0.0);
+        dest = intent.getParcelableExtra("destination");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
         parseUsers = new ArrayList<String>();
@@ -135,7 +139,9 @@ public class NewEvent extends AppCompatActivity {
             data.put("fromPush", true);
             data.put("gameStarted", true);
             data.put("eventType", 0);
-            data.put("destination", destination);
+//            data.put("destination", dest);
+            data.put("Lat",dest.latitude);
+            data.put("Long",dest.longitude);
             data.put("currentPlayers", new JSONArray(playerList));
         } catch (JSONException e) {
             e.printStackTrace();
@@ -152,7 +158,9 @@ public class NewEvent extends AppCompatActivity {
         intent.putExtra("eventType", eventID);
         intent.putExtra("gameStarted", true);
         intent.putExtra("user1", user1);
-        intent.putExtra("destination", destination);
+        intent.putExtra("destination", dest);
+//        intent.putExtra("Lat", lat);
+//        intent.putExtra("Long", lon);
         intent.putExtra("sessionID", uniqueID);
         startActivity(intent);
 

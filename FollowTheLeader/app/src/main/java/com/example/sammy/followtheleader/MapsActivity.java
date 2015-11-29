@@ -100,7 +100,9 @@ public class MapsActivity extends ActionBarActivity implements
                 sessionID = json.getString("gameID");
                 gameStarted = json.getBoolean("gameStarted");
                 eventType = json.getInt("eventType");
-                destinationLocation = intent.getParcelableExtra("destination");
+                destinationLocation = new LatLng(json.getDouble("Lat")
+                        , json.getDouble("Long"));
+//                destinationLocation = json.get("destination");
                 players = json.getJSONArray("currentPlayers");
                 getArrayList(players);
             } catch (JSONException e) {
@@ -108,11 +110,13 @@ public class MapsActivity extends ActionBarActivity implements
             }
         }
         else {
-            currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
             eventType = intent.getIntExtra("eventType", 0);
             sessionID = intent.getStringExtra("sessionID");
             gameStarted = intent.getBooleanExtra("gameStarted", false);
+//            destinationLocation = new LatLng(intent.getDoubleExtra("Lat",0.0)
+//                    , intent.getDoubleExtra("Long",0.0));
             destinationLocation = intent.getParcelableExtra("destination");
+            currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
         }
 //        gameStarted = intent.getBooleanExtra("gameStarted", false);
         arrayPoints = new ArrayList<LatLng>();
@@ -192,7 +196,9 @@ public class MapsActivity extends ActionBarActivity implements
     public void newEvent () {
         Intent intent = new Intent(this, NewEvent.class);
         intent.putExtra("user1", user1);
-        intent.putExtra("destination", destinationLocation);
+//        intent.putExtra("Lat", destinationLocation.latitude);
+//        intent.putExtra("Long",destinationLocation.longitude);
+        intent.putExtra("destination",destinationLocation);
         startActivity(intent);
     }
     //------------------------------------------------------
@@ -248,7 +254,11 @@ public class MapsActivity extends ActionBarActivity implements
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
         mMap.addMarker(finalLocation);
 
+
 //        if Geofence
+    }
+    public void addProximityAlert (){
+
     }
     private void handleNewLocation(Location location) {
         if(gameStarted) {
@@ -348,10 +358,13 @@ public class MapsActivity extends ActionBarActivity implements
     }
     @Override
     public void onMapLongClick(LatLng point) {
-        MarkerOptions marker = new MarkerOptions();
-        marker.position(point);
-        destinationLocation = point;
-        mMap.addMarker(marker);
+        if(!markerCreated) {
+            mMap.clear();
+            MarkerOptions marker = new MarkerOptions();
+            marker.position(point);
+            destinationLocation = point;
+            mMap.addMarker(marker);
+        }
     }
     @Override
     public void onMapClick(LatLng point) {
@@ -381,5 +394,6 @@ public class MapsActivity extends ActionBarActivity implements
     public void onLocationChanged(Location location) {
         handleNewLocation(location);
     }
+
 
 }
