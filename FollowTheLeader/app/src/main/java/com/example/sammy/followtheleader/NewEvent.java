@@ -15,6 +15,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.parse.FindCallback;
 import com.parse.ParseInstallation;
 import com.parse.ParseObject;
@@ -35,11 +36,13 @@ public class NewEvent extends AppCompatActivity {
     ArrayList<String> parseUsers = null;
     ArrayList<String> playerArray = null;
     private String user1;
+    private LatLng destination;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         Intent intent =getIntent();
         user1 = intent.getStringExtra("user1");
+        destination = intent.getParcelableExtra("destination");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
         parseUsers = new ArrayList<String>();
@@ -121,45 +124,35 @@ public class NewEvent extends AppCompatActivity {
     public void procedeTomap (ArrayList<String> playerList,int eventID) {
         String uniqueID = UUID.randomUUID().toString();
         playerList.add(user1);
-//        for(int i=0; i<playerList.size(); i++){
-            ParseQuery pushQuery = ParseInstallation.getQuery();
-            pushQuery. whereEqualTo("user", playerList);
-            pushQuery.whereNotEqualTo("user",user1);
+        ParseQuery pushQuery = ParseInstallation.getQuery();
+        pushQuery. whereEqualTo("user", playerList);
+        pushQuery.whereNotEqualTo("user",user1);              //avoid sending to yourself
 
-            JSONObject data = new JSONObject();
-            try {
-                data.put("alert", "Meet you there!");
-                data.put("gameID", uniqueID);
-                data.put("fromPush", true);
-                data.put("gameStarted", true);
-                data.put("eventType", 0);
-                data.put("currentPlayers", new JSONArray(playerList));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+        JSONObject data = new JSONObject();
+        try {
+            data.put("alert", "Meet you there!");
+            data.put("gameID", uniqueID);
+            data.put("fromPush", true);
+            data.put("gameStarted", true);
+            data.put("eventType", 0);
+            data.put("destination", destination);
+            data.put("currentPlayers", new JSONArray(playerList));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-//            JSONObject data = null;
-//            try {
-//                data = new JSONObject("{\"gameID\": uniqueID,\"formPush\": true}");
-//            } catch (JSONException e) {
-//                e.printStackTrace();
-//            }
-
-            // Send push notification to query
-            ParsePush push = new ParsePush();
-            push.setQuery(pushQuery); // Set our Installation query
-            push.setData(data);
-//            push.setMessage("Dawg join my game66");
-//            push.setChannel(uniqueID);
-            push.sendInBackground();
-//        }
+        // Send push notification to query
+        ParsePush push = new ParsePush();
+        push.setQuery(pushQuery); // Set our Installation query
+        push.setData(data);
+        push.sendInBackground();
 
         Intent intent = new Intent(this, MapsActivity.class);
         intent.putExtra("peoplePlaying", playerList);
         intent.putExtra("eventType", eventID);
         intent.putExtra("gameStarted", true);
         intent.putExtra("user1", user1);
-//        intent.putExtra("loggedIn", true);
+        intent.putExtra("destination", destination);
         intent.putExtra("sessionID", uniqueID);
         startActivity(intent);
 

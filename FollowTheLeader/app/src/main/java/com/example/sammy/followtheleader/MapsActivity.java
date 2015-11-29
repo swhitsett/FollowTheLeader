@@ -70,6 +70,7 @@ public class MapsActivity extends ActionBarActivity implements
     private String user1;
     private String sessionID;
     private boolean gameStarted = false;
+    private LatLng destinationLocation;
 
 
     @Override
@@ -99,9 +100,9 @@ public class MapsActivity extends ActionBarActivity implements
                 sessionID = json.getString("gameID");
                 gameStarted = json.getBoolean("gameStarted");
                 eventType = json.getInt("eventType");
+                destinationLocation = intent.getParcelableExtra("destination");
                 players = json.getJSONArray("currentPlayers");
                 getArrayList(players);
-//                getArrayList(json.getJSONArray("currentPlayers"));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -111,6 +112,7 @@ public class MapsActivity extends ActionBarActivity implements
             eventType = intent.getIntExtra("eventType", 0);
             sessionID = intent.getStringExtra("sessionID");
             gameStarted = intent.getBooleanExtra("gameStarted", false);
+            destinationLocation = intent.getParcelableExtra("destination");
         }
 //        gameStarted = intent.getBooleanExtra("gameStarted", false);
         arrayPoints = new ArrayList<LatLng>();
@@ -119,7 +121,6 @@ public class MapsActivity extends ActionBarActivity implements
         setUpMapIfNeeded();
         buildGoogleApiClient();
         createLocationRequest();
-//        initparseInstliation();
         mMap.setOnMapLongClickListener(this);
 
 
@@ -127,7 +128,6 @@ public class MapsActivity extends ActionBarActivity implements
     //---------------------------------------------------------------
     private void getArrayList(JSONArray mrArray){
         for (int i=0;i<mrArray.length();i++){
-//                mrArray.getString(i).toString();
             try {
                 currentPlayerNames.add(mrArray.get(i).toString());
             } catch (JSONException e) {
@@ -153,7 +153,7 @@ public class MapsActivity extends ActionBarActivity implements
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(1 * 1000)        // 10 seconds, in milliseconds
-                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+                .setFastestInterval(2 * 1000); // 1 second, in milliseconds
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -163,14 +163,12 @@ public class MapsActivity extends ActionBarActivity implements
                 .addApi(LocationServices.API)
                 .build();
     }
-
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
         mGoogleApiClient.connect();
     }
-
     //creation of adding user account-----------------------
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -179,7 +177,6 @@ public class MapsActivity extends ActionBarActivity implements
         inflater.inflate(R.menu.menu_new_event, menu);
         return super.onCreateOptionsMenu(menu);
     }
-//
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
@@ -195,6 +192,7 @@ public class MapsActivity extends ActionBarActivity implements
     public void newEvent () {
         Intent intent = new Intent(this, NewEvent.class);
         intent.putExtra("user1", user1);
+        intent.putExtra("destination", destinationLocation);
         startActivity(intent);
     }
     //------------------------------------------------------
@@ -210,8 +208,6 @@ public class MapsActivity extends ActionBarActivity implements
     protected void onStop(){
         super.onStop();
 
-        // We need an Editor object to make preference changes.
-        // All objects are from android.context.Context
         SharedPreferences settings = getSharedPreferences("Prefs_File", 0);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("userName", user1);
@@ -245,7 +241,15 @@ public class MapsActivity extends ActionBarActivity implements
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
     }
+    private void handleFinalDestination(){
+        MarkerOptions finalLocation = new MarkerOptions()
+                .position(destinationLocation)
+                .title("Meet You Here!!")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+        mMap.addMarker(finalLocation);
 
+//        if Geofence
+    }
     private void handleNewLocation(Location location) {
         if(gameStarted) {
             Log.i(TAG, "----------------------" + location.getLatitude());
@@ -263,20 +267,11 @@ public class MapsActivity extends ActionBarActivity implements
             pullUserPositions(latLng);
 
             if (!markerCreated) {
-//                currentPlayerNames.add(user1);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
             }
         }
     }
-//    private void addPollyLinesToMap(){
-//        polylineOptions = null;
-//        polylineOptions = new PolylineOptions();
-//        polylineOptions.color(Color.RED);
-//        polylineOptions.width(8);
-//        polylineOptions.addAll(arrayPoints);
-//        mMap.addPolyline(polylineOptions);
-//    }
     private void drawPlayerPolyline(){
         polylineOptions = null;
         polylineOptions = new PolylineOptions();
@@ -298,7 +293,6 @@ public class MapsActivity extends ActionBarActivity implements
     private void placeUserMarkers (LatLng latLng) {
         markerLocation.clear();
         boolean userPointFound = false;
-//        ArrayList<LatLng> markerLocation = new ArrayList<LatLng>();
         for(int j=currentPlayerNames.size()-1; j>=0; j--) {
             for (int i = userAtPoint.size()-1; i>=0  ; i--) {
                 if (userAtPoint.get(i).equals(currentPlayerNames.get(j))) {
@@ -307,11 +301,9 @@ public class MapsActivity extends ActionBarActivity implements
                         if (markerLocation.isEmpty()) {
                             markerLocation.add(arrayPoints.get(i));
                             userPointFound = true;
-//                            break;
                         } else {
                             markerLocation.add(j, arrayPoints.get(i));
                             userPointFound = true;
-//                            break;
                         }
                     }
                 }
@@ -322,12 +314,13 @@ public class MapsActivity extends ActionBarActivity implements
         for (int i = 0; i < markerLocation.size(); i++) {
             MarkerOptions options = new MarkerOptions()
                     .position(markerLocation.get(i))
-                    .title("Your Location")
+                    .title(userAtPoint.get(i))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
             marker = mMap.addMarker(options);
             markerCreated = true;
 //            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         }
+        handleFinalDestination();
     }
     private void pullUserPositions(final LatLng latLng) {
         ParseQuery<ParseObject> query = ParseQuery.getQuery("UserPositions");
@@ -357,9 +350,11 @@ public class MapsActivity extends ActionBarActivity implements
     public void onMapLongClick(LatLng point) {
         MarkerOptions marker = new MarkerOptions();
         marker.position(point);
+        destinationLocation = point;
         mMap.addMarker(marker);
     }
-    @Override public void onMapClick(LatLng point) {
+    @Override
+    public void onMapClick(LatLng point) {
         marker.remove();
     }
 
