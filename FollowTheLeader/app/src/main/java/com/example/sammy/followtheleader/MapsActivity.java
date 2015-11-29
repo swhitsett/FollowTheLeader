@@ -1,4 +1,5 @@
 package com.example.sammy.followtheleader;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -12,9 +13,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.RadioButton;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -253,12 +258,6 @@ public class MapsActivity extends ActionBarActivity implements
                 .title("Meet You Here!!")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
         mMap.addMarker(finalLocation);
-
-
-//        if Geofence
-    }
-    public void addProximityAlert (){
-
     }
     private void handleNewLocation(Location location) {
         if(gameStarted) {
@@ -280,6 +279,28 @@ public class MapsActivity extends ActionBarActivity implements
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
             }
+
+            arrivedAtDestination();
+        }
+    }
+    private void arrivedAtDestination(){
+        float[] results = new float[1];
+        Location.distanceBetween(destinationLocation.latitude
+                , destinationLocation.longitude
+                , location.getLatitude()
+                , location.getLongitude()
+                , results);
+
+        float distanceInMeters = results[0];
+        boolean isWithin10m = distanceInMeters < 60;
+        //test toast
+        if(isWithin10m) {
+            int duration = Toast.LENGTH_SHORT;
+            Context context = getApplicationContext();
+            CharSequence text = "You Made IT";
+
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
         }
     }
     private void drawPlayerPolyline(){
