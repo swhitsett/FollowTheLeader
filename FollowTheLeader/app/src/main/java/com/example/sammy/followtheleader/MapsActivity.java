@@ -14,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.RadioButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -349,9 +350,53 @@ public class MapsActivity extends ActionBarActivity implements
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
             marker = mMap.addMarker(options);
             markerCreated = true;
+
+            if((userAtPoint.get(i).equals(user1))) {
+                Location destination = new Location("dest");
+                Location userpoint = new Location("user");
+                destination.setLatitude(destinationLocation.latitude);
+                destination.setLongitude(destinationLocation.longitude);
+                userpoint.setLatitude(markerLocation.get(i).latitude);  //individual persons location
+                userpoint.setLatitude(markerLocation.get(i).longitude); //individual persons location
+                double k = userpoint.distanceTo(destination);
+                calcPositionToDestination(destination, k);
+            }
 //            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         }
         handleFinalDestination();
+    }
+    private void calcPositionToDestination( Location destination, double userDistance){
+        double otherPlayerDistance =0.0;
+        Location loc = new Location("user");
+        int currentPosition = 1;
+        for(int i =0; i<markerLocation.size(); i++){
+//            Location destination = new Location("dest");
+//            destination.setLatitude(destinationLocation.latitude);
+//            destination.setLongitude(destinationLocation.longitude);
+            loc.setLatitude(markerLocation.get(i).latitude);  //individual persons location
+            loc.setLatitude(markerLocation.get(i).longitude); //individual persons location
+            otherPlayerDistance = loc.distanceTo(destination);
+            if(!(userAtPoint.get(i).equals(user1))) {
+                if (userDistance > otherPlayerDistance) {
+                    currentPosition = i + 1;
+                }
+                else{
+                    currentPosition = 1;
+                }
+            }
+        }
+        TextView playerPlace = (TextView) findViewById(R.id.PlayerPosition);
+        String currentPlace ="";
+        if(currentPosition == 1) {
+            currentPlace = String.format("%dst", currentPosition);
+        }
+        else if(currentPosition == 2){
+            currentPlace = String.format("%dnd", currentPosition);
+        }
+        else{
+            currentPlace = String.format("%dth", currentPosition);
+        }
+        playerPlace.setText(currentPlace);
     }
     private void pullUserPositions(final LatLng latLng) {
         ParseQuery<ParseObject> query = ParseQuery.getQuery("UserPositions");
