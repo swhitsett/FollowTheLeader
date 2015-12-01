@@ -72,6 +72,7 @@ public class MapsActivity extends ActionBarActivity implements
     private ArrayList<String> userAtPoint = null;
     private ArrayList<LatLng> markerLocation = null;
     private ArrayList<LatLng> playerPollyLine = null;
+    private ArrayList<Integer> userBearing = null;
     private int eventType;
     private String user1;
     private String sessionID;
@@ -90,6 +91,7 @@ public class MapsActivity extends ActionBarActivity implements
         userAtPoint = new ArrayList<String>();
         markerLocation = new ArrayList<LatLng>();
         playerPollyLine = new ArrayList<LatLng>();
+        userBearing = new ArrayList<Integer>();
         //Grab data from other activitys
 
 //        currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
@@ -257,7 +259,7 @@ public class MapsActivity extends ActionBarActivity implements
         MarkerOptions finalLocation = new MarkerOptions()
                 .position(destinationLocation)
                 .title("Meet You Here!!")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.flag));
         mMap.addMarker(finalLocation);
     }
     private void handleNewLocation(Location location) {
@@ -267,11 +269,14 @@ public class MapsActivity extends ActionBarActivity implements
             double currentLongitude = location.getLongitude();
 
             LatLng latLng = new LatLng(currentLatitude, currentLongitude);
-
             if(markerCreated) {
                 arrayPoints.clear();
                 userAtPoint.clear();
             }
+
+            TextView playerPlace = (TextView) findViewById(R.id.PlayerSpeed);
+            String currentDistance = String.format("Speed \n%dmph", Math.round(location.getSpeed() * (float)2.236936 ));
+            playerPlace.setText(currentDistance);
 
             saveNewLocation(currentLatitude, currentLongitude, location.getBearing());
             pullUserPositions(latLng);
@@ -294,6 +299,10 @@ public class MapsActivity extends ActionBarActivity implements
 
         float distanceInMeters = results[0];
         boolean isWithin10m = distanceInMeters < 60;
+        TextView playerPlace = (TextView) findViewById(R.id.PlayerDistance);
+        String currentDistance = String.format("Distance\n%dft", new Integer(Math.round(distanceInMeters * (float)3.2808)));
+        playerPlace.setText(currentDistance);
+
         //test toast
         if(isWithin10m) {
             int duration = Toast.LENGTH_SHORT;
@@ -307,7 +316,7 @@ public class MapsActivity extends ActionBarActivity implements
     private void drawPlayerPolyline(){
         polylineOptions = null;
         polylineOptions = new PolylineOptions();
-        polylineOptions.color(Color.RED);
+        polylineOptions. color(Color.RED);
         polylineOptions.width(8);
         polylineOptions.addAll(playerPollyLine);
         mMap.addPolyline(polylineOptions);
@@ -347,7 +356,10 @@ public class MapsActivity extends ActionBarActivity implements
             MarkerOptions options = new MarkerOptions()
                     .position(markerLocation.get(i))
                     .title(userAtPoint.get(i))
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+                    .anchor(0.5f,0.5f)
+                    .rotation(userBearing.get(i))
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.arrow))
+                    .flat(true);//BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
             marker = mMap.addMarker(options);
             markerCreated = true;
 
@@ -409,9 +421,11 @@ public class MapsActivity extends ActionBarActivity implements
                     Double Long = Double.parseDouble(parseObject.get("Longitude").toString());
                     Double Lat = Double.parseDouble(parseObject.get("Latitude").toString());
                     String user = parseObject.getString("userID").toString();
+                    int bar = parseObject.getInt("Bearing");
 //                    String userasdf = parseObject.getString("sessionID").toString();
 
                     LatLng playerLocations = new LatLng(Lat, Long);
+                    userBearing.add(bar);
                     arrayPoints.add(playerLocations);
                     userAtPoint.add(user);
                 }

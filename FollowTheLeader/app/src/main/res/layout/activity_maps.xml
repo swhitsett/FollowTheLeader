@@ -12,11 +12,32 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="bold"
+        android:textColor="#3366ff"
         android:id="@+id/PlayerPosition"
         android:layout_marginBottom="47dp"
         android:layout_marginEnd="27dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textStyle="bold"
+        android:textColor="#3366ff"
+        android:id="@+id/PlayerDistance"
+        android:layout_alignTop="@+id/PlayerPosition"
+        android:layout_centerHorizontal="true" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textStyle="bold"
+        android:textColor="#3366ff"
+        android:id="@+id/PlayerSpeed"
+        android:layout_alignTop="@+id/PlayerDistance"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>
 
