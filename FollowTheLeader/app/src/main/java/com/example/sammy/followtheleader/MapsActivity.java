@@ -72,7 +72,7 @@ public class MapsActivity extends ActionBarActivity implements
     private ArrayList<String> userAtPoint = null;
     private ArrayList<LatLng> markerLocation = null;
     private ArrayList<LatLng> playerPollyLine = null;
-    private ArrayList<Integer> userBearing = null;
+    private ArrayList<Double> userBearing = null;
     private int eventType;
     private String user1;
     private String sessionID;
@@ -91,12 +91,8 @@ public class MapsActivity extends ActionBarActivity implements
         userAtPoint = new ArrayList<String>();
         markerLocation = new ArrayList<LatLng>();
         playerPollyLine = new ArrayList<LatLng>();
-        userBearing = new ArrayList<Integer>();
-        //Grab data from other activitys
-
-//        currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
-//        eventType = intent.getIntExtra("eventType", 0);
-//        sessionID = intent.getStringExtra("sessionID");
+        userBearing = new ArrayList<Double>();
+        arrayPoints = new ArrayList<LatLng>();
 
         String jsonData = intent.getStringExtra("com.parse.Data");
 
@@ -108,9 +104,7 @@ public class MapsActivity extends ActionBarActivity implements
                 sessionID = json.getString("gameID");
                 gameStarted = json.getBoolean("gameStarted");
                 eventType = json.getInt("eventType");
-                destinationLocation = new LatLng(json.getDouble("Lat")
-                        , json.getDouble("Long"));
-//                destinationLocation = json.get("destination");
+                destinationLocation = new LatLng(json.getDouble("Lat"), json.getDouble("Long"));
                 players = json.getJSONArray("currentPlayers");
                 getArrayList(players);
             } catch (JSONException e) {
@@ -121,13 +115,9 @@ public class MapsActivity extends ActionBarActivity implements
             eventType = intent.getIntExtra("eventType", 0);
             sessionID = intent.getStringExtra("sessionID");
             gameStarted = intent.getBooleanExtra("gameStarted", false);
-//            destinationLocation = new LatLng(intent.getDoubleExtra("Lat",0.0)
-//                    , intent.getDoubleExtra("Long",0.0));
             destinationLocation = intent.getParcelableExtra("destination");
             currentPlayerNames = intent.getStringArrayListExtra("peoplePlaying");
         }
-//        gameStarted = intent.getBooleanExtra("gameStarted", false);
-        arrayPoints = new ArrayList<LatLng>();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
@@ -137,7 +127,6 @@ public class MapsActivity extends ActionBarActivity implements
 
 
     }
-    //---------------------------------------------------------------
     private void getArrayList(JSONArray mrArray){
         for (int i=0;i<mrArray.length();i++){
             try {
@@ -151,7 +140,6 @@ public class MapsActivity extends ActionBarActivity implements
         SharedPreferences settings = getSharedPreferences("Prefs_File", 0);
         boolean loggedin = settings.getBoolean("loggedIn", false);
         String uname = settings.getString("userName", "blank");
-//        setSilent(silent);
 
         if(!loggedin){
             Intent intent = new Intent(this, LoginActivity.class);
@@ -160,20 +148,6 @@ public class MapsActivity extends ActionBarActivity implements
         else{
             user1 = uname;
         }
-    }
-    public void createLocationRequest(){
-        mLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(1 * 1000)        // 10 seconds, in milliseconds
-                .setFastestInterval(2 * 1000); // 1 second, in milliseconds
-    }
-
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
     }
     @Override
     protected void onResume() {
@@ -196,6 +170,13 @@ public class MapsActivity extends ActionBarActivity implements
             case R.id.register:
                 newEvent();
                 return true;
+            case R.id.sign_out:
+                SharedPreferences settings = getSharedPreferences("Prefs_File", 0);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putBoolean("loggedIn", false);
+                editor.commit();
+                isUserLoggedIn();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -204,8 +185,6 @@ public class MapsActivity extends ActionBarActivity implements
     public void newEvent () {
         Intent intent = new Intent(this, NewEvent.class);
         intent.putExtra("user1", user1);
-//        intent.putExtra("Lat", destinationLocation.latitude);
-//        intent.putExtra("Long",destinationLocation.longitude);
         intent.putExtra("destination",destinationLocation);
         startActivity(intent);
     }
@@ -213,9 +192,11 @@ public class MapsActivity extends ActionBarActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-        if (mGoogleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-            mGoogleApiClient.disconnect();
+        if(gameStarted) {
+            if (mGoogleApiClient.isConnected()) {
+                LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+                mGoogleApiClient.disconnect();
+            }
         }
     }
     @Override
@@ -228,32 +209,6 @@ public class MapsActivity extends ActionBarActivity implements
         editor.putBoolean("loggedIn", true);
         editor.commit();
 
-    }
-    private void setUpMapIfNeeded() {
-        // Do a null check to confirm that we have not already instantiated the map.
-        if (mMap == null) {
-            mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                    .getMap();
-        }
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-
-        Log.i(TAG, "Service Connected");
-        startLocationUpdates();
-        location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (location == null) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        }
-        else {
-            handleNewLocation(location);
-        }
-    }
-
-    protected void startLocationUpdates(){
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
     }
     private void handleFinalDestination(){
         MarkerOptions finalLocation = new MarkerOptions()
@@ -357,7 +312,7 @@ public class MapsActivity extends ActionBarActivity implements
                     .position(markerLocation.get(i))
                     .title(userAtPoint.get(i))
                     .anchor(0.5f,0.5f)
-                    .rotation(userBearing.get(i))
+                    .rotation(new Float(userBearing.get(i)))
                     .icon(BitmapDescriptorFactory.fromResource(R.mipmap.arrow))
                     .flat(true);//BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
             marker = mMap.addMarker(options);
@@ -382,9 +337,6 @@ public class MapsActivity extends ActionBarActivity implements
         Location loc = new Location("user");
         int currentPosition = 1;
         for(int i =0; i<markerLocation.size(); i++){
-//            Location destination = new Location("dest");
-//            destination.setLatitude(destinationLocation.latitude);
-//            destination.setLongitude(destinationLocation.longitude);
             loc.setLatitude(markerLocation.get(i).latitude);  //individual persons location
             loc.setLatitude(markerLocation.get(i).longitude); //individual persons location
             otherPlayerDistance = loc.distanceTo(destination);
@@ -399,15 +351,14 @@ public class MapsActivity extends ActionBarActivity implements
         }
         TextView playerPlace = (TextView) findViewById(R.id.PlayerPosition);
         String currentPlace ="";
-        if(currentPosition == 1) {
+
+        if(currentPosition == 1)
             currentPlace = String.format("%dst", currentPosition);
-        }
-        else if(currentPosition == 2){
+        else if(currentPosition == 2)
             currentPlace = String.format("%dnd", currentPosition);
-        }
-        else{
+        else
             currentPlace = String.format("%dth", currentPosition);
-        }
+
         playerPlace.setText(currentPlace);
     }
     private void pullUserPositions(final LatLng latLng) {
@@ -421,8 +372,7 @@ public class MapsActivity extends ActionBarActivity implements
                     Double Long = Double.parseDouble(parseObject.get("Longitude").toString());
                     Double Lat = Double.parseDouble(parseObject.get("Latitude").toString());
                     String user = parseObject.getString("userID").toString();
-                    int bar = parseObject.getInt("Bearing");
-//                    String userasdf = parseObject.getString("sessionID").toString();
+                    double bar = parseObject.getDouble("Bearing");
 
                     LatLng playerLocations = new LatLng(Lat, Long);
                     userBearing.add(bar);
@@ -431,10 +381,8 @@ public class MapsActivity extends ActionBarActivity implements
                 }
                 mMap.clear();
                 placeUserMarkers(latLng);
-//                addPollyLinesToMap();
             }
         });
-
     }
     @Override
     public void onMapLongClick(LatLng point) {
@@ -451,11 +399,48 @@ public class MapsActivity extends ActionBarActivity implements
         marker.remove();
     }
 
+    // Google Connection Functions
+    public void createLocationRequest(){
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(1 * 1000)        // 10 seconds, in milliseconds
+                .setFastestInterval(2 * 1000); // 1 second, in milliseconds
+    }
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+    private void setUpMapIfNeeded() {
+        // Do a null check to confirm that we have not already instantiated the map.
+        if (mMap == null) {
+            mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
+                    .getMap();
+        }
+    }
+    @Override
+    public void onConnected(Bundle bundle) {
+
+        Log.i(TAG, "Service Connected");
+        startLocationUpdates();
+        location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (location == null) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
+        else {
+            handleNewLocation(location);
+        }
+    }
+    protected void startLocationUpdates(){
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
     @Override
     public void onConnectionSuspended(int i) {
         Log.i(TAG, "Reconnection Needed");
     }
-
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         if (connectionResult.hasResolution()) {
@@ -469,7 +454,6 @@ public class MapsActivity extends ActionBarActivity implements
             Log.i(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
         }
     }
-
     @Override
     public void onLocationChanged(Location location) {
         handleNewLocation(location);

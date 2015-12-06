@@ -134,7 +134,7 @@ public class NewEvent extends AppCompatActivity {
 
         JSONObject data = new JSONObject();
         try {
-            data.put("alert", "Meet you there!");
+            data.put("alert", "  Meet you there!");
             data.put("gameID", uniqueID);
             data.put("fromPush", true);
             data.put("gameStarted", true);
