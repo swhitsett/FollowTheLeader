@@ -92,7 +92,6 @@ public class MapsActivity extends ActionBarActivity implements
         Intent intent = getIntent();
         isUserLoggedIn();
 
-//        ParseInstallation.getCurrentInstallation().saveInBackground();
         userPlace = "";
         currentPlayerNames = new ArrayList<String>();
         userAtPoint = new ArrayList<String>();
@@ -133,6 +132,7 @@ public class MapsActivity extends ActionBarActivity implements
         mMap.setOnMapLongClickListener(this);
 
     }
+    //Checks for Logged in User and JSON Parser for players+++++++++++++++++++++++++++++++++++++++++
     private void getArrayList(JSONArray mrArray){
         for (int i=0;i<mrArray.length();i++){
             try {
@@ -155,13 +155,9 @@ public class MapsActivity extends ActionBarActivity implements
             user1 = uname;
         }
     }
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setUpMapIfNeeded();
-        mGoogleApiClient.connect();
-    }
-    //creation of adding user account-----------------------
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    //Creation of Event and Sign Out actionbar items -----------------------------------------------
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu items for use in the action bar
@@ -187,14 +183,15 @@ public class MapsActivity extends ActionBarActivity implements
                 return super.onOptionsItemSelected(item);
         }
     }
-
     public void newEvent () {
         Intent intent = new Intent(this, NewEvent.class);
         intent.putExtra("user1", user1);
         intent.putExtra("destination",destinationLocation);
         startActivity(intent);
     }
-    //------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
+
+    //Handlers for Leaving the Application/Returning++++++++++++++++++++++++++++++++++++++++++++++++
     @Override
     protected void onPause() {
         super.onPause();
@@ -216,22 +213,15 @@ public class MapsActivity extends ActionBarActivity implements
         editor.commit();
 
     }
-    private void handleFinalDestination(){
-
-        mMap.addMarker(new MarkerOptions()
-                .position(destinationLocation)
-                .anchor(0.5f, 0.5f)
-                .rotation(-30)
-                .title("Meet You Here!!")
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.flag)));
-
-        mMap.addCircle(new CircleOptions()
-                .center(destinationLocation)
-                .radius(20)
-                .strokeColor(Color.RED)
-                .fillColor(Color.GREEN));
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setUpMapIfNeeded();
+        mGoogleApiClient.connect();
     }
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    //Event handler for Location listener-----------------------------------------------------------
     private void handleNewLocation(Location location) {
         if(gameStarted) {
             Log.i(TAG, "----------------------" + location.getLatitude());
@@ -264,64 +254,9 @@ public class MapsActivity extends ActionBarActivity implements
             initalZoom = false;
         }
     }
-    private void arrivedAtDestination(){
-//        Location locationB = new Location("point B");
-//        Location locationDest = new Location("point B");
-//        locationDest.setLatitude(destinationLocation.latitude);
-//        locationDest.setLongitude(destinationLocation.longitude);
-//
-//        float distance = locationA.distanceTo(locationB);
-//        float results = location.distanceTo(locationDest);
-        float[] results = new float[1];
-        Location.distanceBetween(destinationLocation.latitude
-                , destinationLocation.longitude
-                , location.getLatitude()
-                , location.getLongitude()
-                , results);
+    //----------------------------------------------------------------------------------------------
 
-        float distanceInMeters = results[0];
-        boolean isWithin10m = distanceInMeters < 20;
-        TextView playerPlace = (TextView) findViewById(R.id.PlayerDistance);
-        String currentDistance = String.format("Distance\n%dft", new Integer(Math.round(distanceInMeters * (float)3.2808)));
-        playerPlace.setText(currentDistance);
-
-        //test toast
-        if(isWithin10m) {
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-            alertDialogBuilder.setMessage(String.format("You Have arrived %s\n at the destination", userPlace));
-            AlertDialog alertDialog = alertDialogBuilder.create();
-            alertDialog.show();
-
-            String uniqueID = UUID.randomUUID().toString();
-            ParseQuery pushQuery = ParseInstallation.getQuery();
-            pushQuery. whereEqualTo("user", currentPlayerNames);
-            pushQuery.whereNotEqualTo("user",user1);              //avoid sending to yourself
-
-            JSONObject data = new JSONObject();
-            try {
-                data.put("alert", String.format("%s has arrived %s at the location",user1,userPlace));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            ParsePush push = new ParsePush();
-            push.setQuery(pushQuery); // Set our Installation query
-            push.setData(data);
-            push.sendInBackground();
-            gameStarted = false;
-
-        }
-    }
-
-    private void drawPlayerPolyline(){
-        polylineOptions = null;
-        polylineOptions = new PolylineOptions();
-        polylineOptions. color(Color.RED);
-        polylineOptions.width(8);
-        polylineOptions.addAll(playerPollyLine);
-        mMap.addPolyline(polylineOptions);
-        playerPollyLine.clear();
-    }
+    //Saving and Pulling data from Parse -----------------------------------------------------------
     private void saveNewLocation(double currentLatitude, double currentLongitude, double bearing){
         ParseObject uPositions = new ParseObject("UserPositions");
         uPositions.put("Latitude", currentLatitude);
@@ -331,6 +266,32 @@ public class MapsActivity extends ActionBarActivity implements
         uPositions.put("Bearing", bearing);
         uPositions.saveInBackground();
     }
+    private void pullUserPositions(final LatLng latLng) {
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("UserPositions");
+        query.whereEqualTo("sessionID", sessionID);
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> list, com.parse.ParseException e) {
+                for (ParseObject parseObject : list) {
+
+                    Double Long = Double.parseDouble(parseObject.get("Longitude").toString());
+                    Double Lat = Double.parseDouble(parseObject.get("Latitude").toString());
+                    String user = parseObject.getString("userID").toString();
+                    Double bar = Double.parseDouble(parseObject.get("Bearing").toString());
+
+                    LatLng playerLocations = new LatLng(Lat, Long);
+                    userBearing.add(bar);
+                    arrayPoints.add(playerLocations);
+                    userAtPoint.add(user);
+                }
+                mMap.clear();
+                placeUserMarkers(latLng);
+            }
+        });
+    }
+    //----------------------------------------------------------------------------------------------
+
+    //Drawing map data to the screen++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     private void placeUserMarkers (LatLng latLng) {
         markerLocation.clear();
         boolean userPointFound = false;
@@ -381,6 +342,76 @@ public class MapsActivity extends ActionBarActivity implements
         }
         handleFinalDestination();
     }
+    private void drawPlayerPolyline(){
+        polylineOptions = null;
+        polylineOptions = new PolylineOptions();
+        polylineOptions. color(Color.RED);
+        polylineOptions.width(8);
+        polylineOptions.addAll(playerPollyLine);
+        mMap.addPolyline(polylineOptions);
+        playerPollyLine.clear();
+    }
+    private void handleFinalDestination(){
+
+        mMap.addMarker(new MarkerOptions()
+                .position(destinationLocation)
+                .anchor(0.5f, 0.5f)
+                .rotation(-30)
+                .title("Meet You Here!!")
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.flag)));
+
+        mMap.addCircle(new CircleOptions()
+                .center(destinationLocation)
+                .radius(20)
+                .strokeColor(Color.RED)
+                .fillColor(Color.GREEN));
+
+    }
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    //Game Calculations (dist, speed, place) and mapview display------------------------------------
+    private void arrivedAtDestination(){
+        float[] results = new float[1];
+
+        Location.distanceBetween(destinationLocation.latitude
+                , destinationLocation.longitude
+                , location.getLatitude()
+                , location.getLongitude()
+                , results);
+
+        float distanceInMeters = results[0];
+        boolean isWithin10m = distanceInMeters < 20;
+        TextView playerPlace = (TextView) findViewById(R.id.PlayerDistance);
+        String currentDistance = String.format("Distance\n%dft", new Integer(Math.round(distanceInMeters * (float)3.2808)));
+        playerPlace.setText(currentDistance);
+
+        //test toast
+        if(isWithin10m) {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setMessage(String.format("You Have arrived %s\n at the destination", userPlace));
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+
+            String uniqueID = UUID.randomUUID().toString();
+            ParseQuery pushQuery = ParseInstallation.getQuery();
+            pushQuery. whereEqualTo("user", currentPlayerNames);
+            pushQuery.whereNotEqualTo("user",user1);              //avoid sending to yourself
+
+            JSONObject data = new JSONObject();
+            try {
+                data.put("alert", String.format("%s has arrived %s at the location",user1,userPlace));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            ParsePush push = new ParsePush();
+            push.setQuery(pushQuery); // Set our Installation query
+            push.setData(data);
+            push.sendInBackground();
+            gameStarted = false;
+
+        }
+    }
     private void calcPositionToDestination( Location destination, double userDistance){
         double otherPlayerDistance =0.0;
         Location loc = new Location("user");
@@ -399,7 +430,6 @@ public class MapsActivity extends ActionBarActivity implements
             }
         }
         TextView playerPlace = (TextView) findViewById(R.id.PlayerPosition);
-//        String currentPlace ="";
 
         if(currentPosition == 1)
             userPlace = String.format("%dst", currentPosition);
@@ -410,29 +440,9 @@ public class MapsActivity extends ActionBarActivity implements
 
         playerPlace.setText(userPlace);
     }
-    private void pullUserPositions(final LatLng latLng) {
-        ParseQuery<ParseObject> query = ParseQuery.getQuery("UserPositions");
-        query.whereEqualTo("sessionID", sessionID);
-        query.findInBackground(new FindCallback<ParseObject>() {
-            @Override
-            public void done(List<ParseObject> list, com.parse.ParseException e) {
-                for (ParseObject parseObject : list) {
+    //----------------------------------------------------------------------------------------------
 
-                    Double Long = Double.parseDouble(parseObject.get("Longitude").toString());
-                    Double Lat = Double.parseDouble(parseObject.get("Latitude").toString());
-                    String user = parseObject.getString("userID").toString();
-                    Double bar = Double.parseDouble(parseObject.get("Bearing").toString());
-
-                    LatLng playerLocations = new LatLng(Lat, Long);
-                    userBearing.add(bar);
-                    arrayPoints.add(playerLocations);
-                    userAtPoint.add(user);
-                }
-                mMap.clear();
-                placeUserMarkers(latLng);
-            }
-        });
-    }
+    //Map listeners +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @Override
     public void onMapLongClick(LatLng point) {
         if(!markerCreated) {
@@ -447,8 +457,9 @@ public class MapsActivity extends ActionBarActivity implements
     public void onMapClick(LatLng point) {
         marker.remove();
     }
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    // Google Connection Functions
+    // Google Connection Functions/Listeners++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     public void createLocationRequest(){
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -472,7 +483,7 @@ public class MapsActivity extends ActionBarActivity implements
     @Override
     public void onConnected(Bundle bundle) {
 
-        Log.i(TAG, "Service Connected");
+        Log.i(TAG, "Derp Service Connected");
         startLocationUpdates();
         location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (location == null) {
@@ -507,6 +518,6 @@ public class MapsActivity extends ActionBarActivity implements
     public void onLocationChanged(Location location) {
         handleNewLocation(location);
     }
-
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 }
