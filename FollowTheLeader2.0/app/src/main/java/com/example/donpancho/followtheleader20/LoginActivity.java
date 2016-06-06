@@ -30,6 +30,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -75,6 +76,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
     String data = "";
+    int buttonChoice = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +91,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
+                    handleInput(1);
                     return true;
                 }
                 return false;
@@ -100,7 +102,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptLogin();
+                handleInput(1);
+            }
+        });
+
+        Button register = (Button) findViewById(R.id.register_button);
+        register.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                handleInput(2);
             }
         });
 
@@ -151,17 +161,24 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
-
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
-    private void attemptLogin() {
+    private void handleInput(int register_or_login) {
         if (mAuthTask != null) {
             return;
         }
 
+        buttonChoice = 0;
+
+        if(register_or_login == 1){
+            buttonChoice = register_or_login;
+        }
+        else if(register_or_login == 2){
+            buttonChoice = register_or_login;
+        }
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
@@ -224,7 +241,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // TODO: attempt authentication against a network service.
             try {
 
-                URL url = new URL("http://98.244.18.147/data/login.php");
+                URL url = null;
+                if(buttonChoice == 1){
+                    url = new URL("http://98.244.18.147/data/login.php");
+                }
+                else if(buttonChoice == 2){
+                    url = new URL("http://98.244.18.147/data/register.php");
+                }
+
                 String urlParms = "email="+mEmail+"&pass="+mPassword;
                 HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setDoOutput(true);
@@ -253,7 +277,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     e.printStackTrace();
                 }
 
-                if(daemail != "") {
+                if(daemail != "" && buttonChoice == 1) {
+                    return true;
+                }
+                else if(buttonChoice == 2){
                     return true;
                 }
 
@@ -289,9 +316,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
 
-            if (success) {
+            if (success && buttonChoice == 1) {
                 toMapView();//finish();
-            } else {
+            }
+            else if(success && buttonChoice == 2){
+                Toast.makeText(getApplicationContext(),"New Login Created",Toast.LENGTH_LONG);
+            }
+            else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
             }
