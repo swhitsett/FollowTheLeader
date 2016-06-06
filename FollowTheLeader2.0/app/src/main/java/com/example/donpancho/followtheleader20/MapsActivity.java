@@ -2,6 +2,7 @@ package com.example.donpancho.followtheleader20;
 
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -22,6 +23,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        Toast t = Toast.makeText(getApplicationContext(),"Welcome "+getIntent().getStringExtra("email"),Toast.LENGTH_LONG);
+        t.show();
     }
 
 
